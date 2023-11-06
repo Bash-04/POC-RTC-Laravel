@@ -5,7 +5,7 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
-        container_name: laravel_app
+        container_name: poc_rtc_laravel
         working_dir: /var/www
         volumes:
             - .:/var/www
@@ -15,7 +15,7 @@ services:
 
     nginx:
         image: nginx:alpine
-        container_name: nginx
+        container_name: nginx_server
         ports:
             - "80:80"
         volumes:
@@ -29,7 +29,7 @@ services:
     # MySQL Service
     mysql:
         image: mysql:8.0
-        container_name: mysql
+        container_name: mysql_database
         ports:
             - "3306:3306"
         environment:
@@ -45,7 +45,7 @@ services:
     # PHPMyAdmin Service
     phpmyadmin:
         image: phpmyadmin/phpmyadmin
-        container_name: phpmyadmin
+        container_name: phpmyadmin_server
         environment:
             - PMA_HOST=mysql
             - PMA_PORT=3306
