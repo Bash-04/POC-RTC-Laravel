@@ -37,29 +37,37 @@ class ItemController extends Controller
     public function streamGetAvailableItems(Request $request)
     {
         return new StreamedResponse(function () use ($request) {
+            $lastAvailableItems = null;
             while (true) {
                 try {
                     $user_id = $request->user_id;
-                    
+
+                    // get all available items that are reservable or reserved by the user
                     $availableItems = Item::whereNotIn('id', function ($query) use ($user_id) {
                         $query->select('item_id')
                         ->from('reserved_items')
                         ->where('user_id', '!=', $user_id);
-                    })->orWhereIn('id', function ($query) use ($user_id) {
-                        $query->select('item_id')
-                        ->from('reserved_items')
-                        ->where('user_id', $user_id);
                     })->get();
 
-                    echo "data: " . json_encode($availableItems) . "\n\n";
-                    
-                    ob_flush();
-                    flush();
+                    if ($availableItems !== null && $lastAvailableItems !== $availableItems) {
+                        echo "data: " . json_encode($availableItems) . "\n\n";
+                        
+                        $lastAvailableItems = $availableItems;
+                        
+                        ob_flush();
+                        flush();
+                    }
+                    else{
+                        echo "data: " . json_encode(['error' => 'No new items']) . "\n\n";
+                        ob_flush();
+                        flush();
+                    }
 
+                    // if client connection is lost, then stop sending data
                     if (connection_aborted()) {
                         break;
                     }
-                    sleep(5); // Sleep for 5 seconds (5000 milliseconds)
+                    sleep(.5); // Sleep for .5 seconds (500 milliseconds)
                 } catch (Exception $e) {
                     echo "data: " . json_encode(['error' => $e->getMessage()]) . "\n\n";
                     ob_flush();
@@ -96,8 +104,6 @@ class ItemController extends Controller
         ]) === false) {
             return "Validation Error";
         }
-
-        event(new ItemReserved($request->user_id, $request->item_id));
         
         $reserveItem = ReserveItem::destroy([
             'user_id' => $request->user_id,
