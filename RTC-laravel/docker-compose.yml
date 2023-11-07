@@ -1,6 +1,5 @@
 version: '3'
 services:
-    # Laravel Application Service
     app:
         build:
             context: .
@@ -8,41 +7,36 @@ services:
         container_name: poc_rtc_laravel
         working_dir: /var/www
         volumes:
-            - .:/var/www
-            - vendor:/var/www/vendor
+            - '.:/var/www'
+            - 'vendor:/var/www/vendor'
         networks:
             - laravel
-
     nginx:
-        image: nginx:alpine
+        image: 'nginx:alpine'
         container_name: nginx_server
         ports:
-            - "80:80"
+            - '80:80'
         volumes:
-            - .:/var/www
-            - ./nginx.conf:/etc/nginx/conf.d/default.conf
+            - '.:/var/www'
+            - './nginx.conf:/etc/nginx/conf.d/default.conf'
         depends_on:
             - app
         networks:
             - laravel
-
-    # MySQL Service
     mysql:
-        image: mysql:8.0
+        image: 'mysql:8.0'
         container_name: mysql_database
         ports:
-            - "3306:3306"
+            - '3306:3306'
         environment:
             MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: laravel  # Make sure this matches DB_DATABASE in your .env file
-            MYSQL_USER: sail  # Make sure this matches DB_USERNAME in your .env file
-            MYSQL_PASSWORD: password  # Make sure this matches DB_PASSWORD in your .env file
+            MYSQL_DATABASE: laravel
+            MYSQL_USER: sail
+            MYSQL_PASSWORD: password
         volumes:
-            - sailmysql:/var/lib/mysql
+            - 'sailmysql:/var/lib/mysql'
         networks:
             - laravel
-
-    # PHPMyAdmin Service
     phpmyadmin:
         image: phpmyadmin/phpmyadmin
         container_name: phpmyadmin_server
@@ -50,19 +44,18 @@ services:
             - PMA_HOST=mysql
             - PMA_PORT=3306
         ports:
-            - "8080:80"
+            - '8080:80'
         depends_on:
             - mysql
         networks:
             - laravel
-
 networks:
-
     laravel:
         driver: bridge
-
 volumes:
     vendor:
         driver: local
     sailmysql:
+        driver: local
+    sail-mysql:
         driver: local
