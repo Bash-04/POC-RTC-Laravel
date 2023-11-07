@@ -28,6 +28,6 @@ Route::get('/users', [UserController::class, 'GetUsers']);
 
 Route::post('/item', [ItemController::class, 'CreateItem']);
 Route::get('/items', [ItemController::class, 'GetItems']);
-Route::get('/items/available', [ItemController::class, 'GetAvailableItems']);
+Route::post('/items/available', [ItemController::class, 'StreamGetAvailableItems']);
 Route::post('/item/reserve', [ItemController::class, 'ReserveItem']);
 Route::delete('/item/reserve', [ItemController::class, 'DeleteReservation']);

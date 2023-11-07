@@ -6,7 +6,9 @@ use App\Events\ItemReserved;
 use App\Models\Item;
 use App\Models\ReserveItem;
 use Error;
+use Exception;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ItemController extends Controller
 {
@@ -32,13 +34,43 @@ class ItemController extends Controller
         return $items;
     }
 
-    public function GetAvailableItems(Request $request)
+    public function streamGetAvailableItems(Request $request)
     {
-        $items = Item::all();
-        $reservedItems = ReserveItem::all();
-        $availableItems = $items->whereNotIn('id', $reservedItems->where('user_id', '!=', request()->user_id)->pluck('id'));
+        return new StreamedResponse(function () use ($request) {
+            while (true) {
+                try {
+                    $user_id = $request->user_id;
+                    
+                    $availableItems = Item::whereNotIn('id', function ($query) use ($user_id) {
+                        $query->select('item_id')
+                        ->from('reserved_items')
+                        ->where('user_id', '!=', $user_id);
+                    })->orWhereIn('id', function ($query) use ($user_id) {
+                        $query->select('item_id')
+                        ->from('reserved_items')
+                        ->where('user_id', $user_id);
+                    })->get();
 
-        return $availableItems;
+                    echo "data: " . json_encode($availableItems) . "\n\n";
+                    
+                    ob_flush();
+                    flush();
+
+                    if (connection_aborted()) {
+                        break;
+                    }
+                    sleep(5); // Sleep for 5 seconds (5000 milliseconds)
+                } catch (Exception $e) {
+                    echo "data: " . json_encode(['error' => $e->getMessage()]) . "\n\n";
+                    ob_flush();
+                    flush();
+                    break;
+                }
+            }
+        }, 200, [
+            'Content-Type' => 'text/event-stream',
+            'Cache-Control' => 'no-cache',
+        ]);
     }
 
     public function ReserveItem(Request $request){
@@ -48,8 +80,6 @@ class ItemController extends Controller
         ]) === false) {
             return "Validation Error";
         }
-
-        event(new ItemReserved($request->user_id, $request->item_id));
         
         $reserveItem = ReserveItem::create([
             'user_id' => $request->user_id,
