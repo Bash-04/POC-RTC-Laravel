@@ -11,21 +11,26 @@ function GetItemsSSE() {
     }
     
     return new Promise((resolve, reject) => {
-        const user_id = cookies.get('user_id');
+        let user_id = cookies.get('user_id');
         console.log(user_id);
         const eventSource = new EventSource('http://localhost:80/api/items/available/' + user_id);
         
+        let oldData: iAvailableItems[] = [];
+
         eventSource.onmessage = (event) => {
             const new_user_id = cookies.get('user_id');
             if (new_user_id != user_id)
             {
                 console.log(new_user_id);
-                eventSource.close();
-                GetItemsSSE();
+                user_id = new_user_id;
             }
             // This function will be called when a new event is received.
             const data = JSON.parse(event.data) as iAvailableItems[]; // Parse the data if it's in JSON format
-            console.log(data);
+            if (JSON.stringify(data) == JSON.stringify(oldData))
+            {
+                console.log(data);
+                oldData = data;
+            }
             // You can process the data here
             resolve(data); // Resolve the Promise with the received data
         };

@@ -32,8 +32,7 @@ class ItemController extends Controller
         return $items;
     }
 
-    public function streamGetAvailableItems(string $user_id)
-    {
+    public function streamGetAvailableItems(string $user_id){
         return new StreamedResponse(function () use ($user_id) {
             $lastAvailableItems = null;
             while (true) {

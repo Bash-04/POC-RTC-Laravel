@@ -8,7 +8,7 @@ export interface iAvailableItems {
   updated_at: string;
 }
 
-const ItemSelecter: React.FC = () => {
+const ItemSelecterSSE: React.FC = () => {
   const [availableItems, setAvailableItems] = useState<iAvailableItems[]>([]);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ const ItemSelecter: React.FC = () => {
     // Poll for data updates every 5 seconds (adjust the interval as needed)
     const intervalId = setInterval(() => {
       fetchAvailableItems();
-    }, 300);
+    }, 1000);
 
     // Clean up the interval when the component unmounts
     return () => clearInterval(intervalId);
@@ -46,4 +46,4 @@ const ItemSelecter: React.FC = () => {
   );
 };
 
-export default ItemSelecter;
+export default ItemSelecterSSE;
