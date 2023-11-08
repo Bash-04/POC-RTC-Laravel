@@ -19,15 +19,17 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::get('/test', function () {
-    return "test";
-});
+// Post
 Route::post('/user', [UserController::class, 'CreateUser']);
+Route::post('/item', [ItemController::class, 'CreateItem']);
+Route::post('/item/reserve', [ItemController::class, 'ReserveItem']);
+
+// Get
+Route::get('/test', function () { return "test"; });
 Route::get('/user', [UserController::class, 'GetUser']);
 Route::get('/users', [UserController::class, 'GetUsers']);
-
-Route::post('/item', [ItemController::class, 'CreateItem']);
 Route::get('/items', [ItemController::class, 'GetItems']);
-Route::post('/items/available', [ItemController::class, 'StreamGetAvailableItems']);
-Route::post('/item/reserve', [ItemController::class, 'ReserveItem']);
-Route::delete('/item/reserve', [ItemController::class, 'DeleteReservation']);
+Route::get('/items/available/{user_id}', [ItemController::class, 'StreamGetAvailableItems']);
+
+// Delete
+Route::delete('/items/reserve/delete', [ItemController::class, 'DeleteReservation']);

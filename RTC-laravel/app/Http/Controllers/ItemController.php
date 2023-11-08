@@ -13,8 +13,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class ItemController extends Controller
 {
     //
-    public function CreateItem(Request $request)
-    {
+    public function CreateItem(Request $request){
         if ($request->validate([
             'name' => 'required',
         ]) === false) {
@@ -28,20 +27,17 @@ class ItemController extends Controller
         return $item;
     }
 
-    public function GetItems(Request $request)
-    {
+    public function GetItems(Request $request){
         $items = Item::all();
         return $items;
     }
 
-    public function streamGetAvailableItems(Request $request)
+    public function streamGetAvailableItems(string $user_id)
     {
-        return new StreamedResponse(function () use ($request) {
+        return new StreamedResponse(function () use ($user_id) {
             $lastAvailableItems = null;
             while (true) {
                 try {
-                    $user_id = $request->user_id;
-
                     // get all available items that are reservable or reserved by the user
                     $availableItems = Item::whereNotIn('id', function ($query) use ($user_id) {
                         $query->select('item_id')
@@ -54,12 +50,17 @@ class ItemController extends Controller
                         
                         $lastAvailableItems = $availableItems;
                         
-                        ob_flush();
+                        if (ob_get_level() > 0) {
+                            ob_flush();
+                        }
                         flush();
                     }
                     else{
                         echo "data: " . json_encode(['error' => 'No new items']) . "\n\n";
-                        ob_flush();
+                        
+                        if (ob_get_level() > 0) {
+                            ob_flush();
+                        }
                         flush();
                     }
 
@@ -97,19 +98,7 @@ class ItemController extends Controller
         return $reserveItem;
     }
     
-    public function DeleteReservation(Request $request){
-        if ($request->validate([
-            'user_id' => 'required',
-            'item_id' => 'required',
-        ]) === false) {
-            return "Validation Error";
-        }
-        
-        $reserveItem = ReserveItem::destroy([
-            'user_id' => $request->user_id,
-            'item_id' => $request->item_id,
-        ]);
-        
-        return $reserveItem;
+    public function DeleteReservation(){
+        return ReserveItem::truncate();
     }
 }
