@@ -23,13 +23,15 @@ const ItemSelecterSSE: React.FC = () => {
       }
     };
 
-    // Poll for data updates every 5 seconds (adjust the interval as needed)
-    const intervalId = setInterval(() => {
-      fetchAvailableItems();
-    }, 1000);
+    fetchAvailableItems(); // Initial data fetch
 
-    // Clean up the interval when the component unmounts
-    return () => clearInterval(intervalId);
+    // // Poll for data updates every 5 seconds (adjust the interval as needed)
+    // const intervalId = setInterval(() => {
+    //   fetchAvailableItems();
+    // }, 5000); // Change the interval to 5000 milliseconds (5 seconds)
+
+    // // Clean up the interval when the component unmounts
+    // return () => clearInterval(intervalId);
   }, []);
 
   return (
@@ -45,5 +47,4 @@ const ItemSelecterSSE: React.FC = () => {
     </div>
   );
 };
-
 export default ItemSelecterSSE;

@@ -1,9 +1,53 @@
 import { Cookies } from "react-cookie";
 import { iAvailableItems } from "../components/ItemSelecter";
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+var pusher = new Pusher(
+    import.meta.env.VITE_PUSHER_APP_KEY, 
+    { cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER }
+);
+
+const echo = new Echo({
+    broadcaster: 'pusher',
+    key: import.meta.env.VITE_PUSHER_APP_KEY,
+    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+    forceTLS: true
+});
 
 async function GetItemsPolling() { }
 
-function GetItemsSSE() {
+async function GetItemsSSE() {
+    const cookies = new Cookies();
+    let userId = 0;
+
+    if (cookies.get('user_id') == null) {
+        userId = 1;
+        cookies.set('user_id', userId, { path: '/' });
+    } else {
+        userId = cookies.get('user_id');
+    }
+
+    return new Promise((resolve) => {
+        const channel = echo.channel('Parkingspot.' + userId);
+        console.log(channel);
+
+        const pusherChannel = pusher.subscribe('channel-name');
+        console.log(pusherChannel);
+
+        pusherChannel.bind('LolEvent', (data: iAvailableItems[]) => {
+            console.log(data);
+            resolve(data); // Resolve the promise with the received data
+        });
+
+        // channel.listen('AvailableParkingspots', (data: iAvailableItems[]) => {
+        //     console.log(data);
+        //     resolve(data); // Resolve the promise with the received data
+        // });
+    });
+}
+
+function GetItemsStreaming() {
     const cookies = new Cookies();
     if (cookies.get('user_id') == null)
     {
@@ -44,8 +88,9 @@ function GetItemsSSE() {
     });
 }
 
+async function GetItemsWS() { 
 
-async function GetItemsWS() { }
+}
 
 async function ReserveItem(userId:number, itemId:number) {
     const reserveItem = {
@@ -78,4 +123,4 @@ async function ReserveItem(userId:number, itemId:number) {
     }
 }
 
-export { GetItemsPolling, GetItemsSSE, GetItemsWS, ReserveItem };
+export { GetItemsPolling, GetItemsStreaming, GetItemsSSE, GetItemsWS, ReserveItem };

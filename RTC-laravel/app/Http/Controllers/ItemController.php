@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\ItemReserved;
+use App\Events\ParkingspotReserved;
 use App\Models\Item;
 use App\Models\ReserveItem;
 use Error;
@@ -14,19 +14,27 @@ class ItemController extends Controller
 {
     //
     public function CreateItem(Request $request){
-        if ($request->validate([
-            'name' => 'required',
-        ]) === false) {
-            return "Validation Error";
-        }
+        // Get the authenticated user's ID
         
-        $item = Item::create([
+        if (!$request->validate([
+            'user_id' => 'required',
+            'name' => 'required',
+            ]) || Item::where('name', $request->name)->exists()) {
+                return "Validation Error";
+        }
+        else {
+            $user_id = $request->user_id;
+            $item = Item::create([
             'name' => $request->name,
         ]);
-        
+           
+            // Pass the user_id to the event
+            event(new ParkingspotReserved($user_id));
+        }
+       
         return $item;
     }
-
+    
     public function GetItems(Request $request){
         $items = Item::all();
         return $items;
@@ -34,7 +42,7 @@ class ItemController extends Controller
 
     public function streamGetAvailableItems(string $user_id){
         return new StreamedResponse(function () use ($user_id) {
-            $lastAvailableItems = null;
+            $lastAvailableItems = [];
             while (true) {
                 try {
                     // get all available items that are reservable or reserved by the user
@@ -44,24 +52,19 @@ class ItemController extends Controller
                         ->where('user_id', '!=', $user_id);
                     })->get();
 
-                    if ($availableItems !== null && $lastAvailableItems !== $availableItems) {
-                        echo "data: " . json_encode($availableItems) . "\n\n";
+                    if ($availableItems !== null && json_encode($lastAvailableItems) !== json_encode($availableItems)) {
+                        echo "data 1: " . json_encode($availableItems) . "\n\n";
                         
-                        $lastAvailableItems = $availableItems;
-                        
-                        if (ob_get_level() > 0) {
-                            ob_flush();
-                        }
-                        flush();
+                        $lastAvailableItems = $availableItems->toArray();
                     }
                     else{
                         echo "data: " . json_encode(['error' => 'No new items']) . "\n\n";
-                        
-                        if (ob_get_level() > 0) {
-                            ob_flush();
-                        }
-                        flush();
                     }
+                    
+                    if (ob_get_level() > 0) {
+                        ob_flush();
+                    }
+                    flush();
 
                     // if client connection is lost, then stop sending data
                     if (connection_aborted()) {
