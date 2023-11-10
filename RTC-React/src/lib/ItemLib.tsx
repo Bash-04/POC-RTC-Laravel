@@ -92,6 +92,18 @@ async function GetItemsWS() {
 
 }
 
+async function basPusher(){
+    const pusher = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
+        cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+        forceTLS: true
+    });
+
+    const channel = pusher.subscribe('basChannel');
+    channel.bind('basEvent', function(data) {
+        alert(JSON.stringify(data));
+    });
+}
+
 async function ReserveItem(userId:number, itemId:number) {
     const reserveItem = {
         user_id: userId,
