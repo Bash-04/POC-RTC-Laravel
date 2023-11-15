@@ -1,5 +1,7 @@
 # POC-RTC-Laravel
- Proof of Concept for Real-time Communication Protocols with Laravel as back-end
+Proof of Concept for Real-time Communication Protocols with Laravel as back-end
+<br>
+This is my first try on the POC with laravel, in this POC you'll only find a halve working SSE poc with a response time of about 50s.
 
 ## POC
 ### <a href="./RTC-React/">React TS</a>
